@@ -46,7 +46,7 @@ SERIES_DATABASE = [
         "series_id": 3,
         "name": "مسلسل تجريبي",
         "cover": "",
-        "plot": "مسلسل تجريبي للتأكد من توافق الرسيفر",
+        "plot": "مسلسل تجريبي",
         "cast": "Mahmood",
         "director": "Mahmood",
         "genre": "Drama",
@@ -70,18 +70,13 @@ SERIES_EPISODES = {
 
 @app.route('/')
 def home():
-    return "Xtream Codes Ultimate Server is Active!"
+    return "Xtream Codes API is Active!"
 
-# دعم الـ panel_api.php التي تطلبها بعض الرسيفرات
-@app.route('/panel_api.php')
 @app.route('/player_api.php')
 def player_api():
     username = request.args.get('username')
     password = request.args.get('password')
     action = request.args.get('action')
-
-    # طباعة الطلب في السجل لمعرفة ماذا يطلب الرسيفر بالحديد
-    print(f"Request Action: {action} | User: {username}")
 
     if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
         return jsonify({
@@ -106,24 +101,20 @@ def player_api():
         info = {
             "seasons": [{"season_number": 1, "name": "الموسم الاول", "episode_count": 1}],
             "episodes": SERIES_EPISODES,
-            "info": {
-                "name": "مسلسل تجريبي",
-                "cover": "",
-                "plot": "وصف المسلسل التجريبي"
-            }
+            "info": {"name": "مسلسل تجريبي", "cover": "", "plot": "وصف المسلسل"}
         }
         return jsonify(info)
 
-    # الرد الشامل المتوافق مع كافة إصدارات Xtream UI
+    # الاستجابة القياسية المطابقة تماماً لمتطلبات الرسيفر لمنع خطأ Download date error
     return jsonify({
         "user_info": {
             "username": username,
             "password": password,
             "auth": 1,
             "status": "Active",
-            "exp_date": "2147483647",
+            "exp_date": 2147483647,
             "is_trial": "0",
-            "active_cons": "1",
+            "active_cons": 1,
             "max_connections": "10",
             "allowed_output_formats": ["m3u8", "ts", "rtmp"]
         },
@@ -135,8 +126,7 @@ def player_api():
             "rtmp_port": "8080",
             "timezone": "UTC",
             "timestamp_now": 1780000000,
-            "time_now": "2026-06-06 00:00:00",
-            "process": True
+            "time_now": "2026-06-06 00:00:00"
         }
     })
 
