@@ -4,12 +4,12 @@ app = Flask(__name__)
 
 MOVIES_DATABASE = [
     {
-        "title": "فيلم تجريبي 1 (720p)",
-        "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        "title": "فيديو تجريبي 1",
+        "url": "https://www.w3schools.com/html/mov_bbb.mp4"
     },
     {
-        "title": "فيلم تجريبي 2 (720p)",
-        "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+        "title": "فيديو تجريبي 2",
+        "url": "https://www.w3schools.com/html/html5.mp4"
     }
 ]
 
