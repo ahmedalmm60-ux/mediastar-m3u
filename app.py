@@ -2,7 +2,7 @@ from flask import Flask, jsonify, Response, request
 
 app = Flask(__name__)
 
-# بيانات الدخول الوهمية الخاصة بنظام أكستريم
+# بيانات الدخول الثابتة
 SERVER_CONFIG = {
     "username": "admin",
     "password": "123",
@@ -36,55 +36,70 @@ MOVIES_DATABASE = [
 
 SERIES_DATABASE = [
     {
-        "stream_id": 3,
-        "name": "مسلسل تجريبي - الحلقة الأولى",
-        "stream_type": "series",
-        "stream_icon": "",
-        "url": "https://www.w3schools.com/html/html5.mp4",
+        "series_id": 3,
+        "name": "مسلسل تجريبي",
+        "cover": "",
         "category_id": "3",
         "category_name": "Series"
     }
 ]
 
+SERIES_EPISODES = {
+    "3": [
+        {
+            "id": 301,
+            "episode_num": 1,
+            "title": "الحلقة الأولى",
+            "container_extension": "mp4",
+            "url": "https://www.w3schools.com/html/html5.mp4"
+        }
+    ]
+}
+
 @app.route('/')
 def home():
-    return "MediaStar Xtream Codes Server is Running Successfully!"
+    return "Xtream Codes API Server is Active!"
 
-# نقطة التحقق وتسجيل الدخول (player_api.php)
+# نقطة المصادقة الرئيسية (player_api.php)
 @app.route('/player_api.php')
 def player_api():
     username = request.args.get('username')
     password = request.args.get('password')
     action = request.args.get('action')
 
-    # التحقق من بيانات الدخول
+    # التحقق من صحة بيانات الدخول
     if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
-        return jsonify({"user_info": {"auth": 0}, "server_info": {"status": "Invalid"}}), 401
+        return jsonify({
+            "user_info": {"auth": 0, "status": "Expired"},
+            "server_info": {"status": "Invalid"}
+        }), 200
 
-    # إذا طلب التطبيق الأقسام (Categories)
+    # 1. إرسال الأقسام حسب الطلب
     if action == "get_live_categories":
-        return jsonify([{"category_id": "1", "category_name": "Live Channels"}])
+        return jsonify([{"category_id": "1", "category_name": "Live Channels", "parent_id": 0}])
     elif action == "get_vod_categories":
-        return jsonify([{"category_id": "2", "category_name": "Movies"}])
+        return jsonify([{"category_id": "2", "category_name": "Movies", "parent_id": 0}])
     elif action == "get_series_categories":
-        return jsonify([{"category_id": "3", "category_name": "Series"}])
+        return jsonify([{"category_id": "3", "category_name": "Series", "parent_id": 0}])
 
-    # إذا طلب القنوات أو الأفلام
+    # 2. إرسال محتوى القنوات والأفلام والمسلسلات
     elif action == "get_live_streams":
         return jsonify(CHANNELS_DATABASE)
     elif action == "get_vod_streams":
         return jsonify(MOVIES_DATABASE)
     elif action == "get_series":
-        # تنسيق مبسط للمسلسلات في أكستريم
-        return jsonify([{
-            "series_id": 3,
-            "name": "مسلسل تجريبي",
-            "cover": "",
-            "category_id": "3"
-        }])
+        return jsonify(SERIES_DATABASE)
+    elif action == "get_series_info":
+        series_id = request.args.get('series_id')
+        info = {
+            "seasons": [{"season_number": 1, "name": "الموسم الاول"}],
+            "episodes": SERIES_EPISODES,
+            "info": {"name": "مسلسل تجريبي", "cover": ""}
+        }
+        return jsonify(info)
 
-    # المعلومات الافتراضية عند تسجيل الدخول الناجح
-    user_data = {
+    # الاستجابة الافتراضية للتحقق وتسجيل الدخول الناجح
+    return jsonify({
         "user_info": {
             "username": username,
             "password": password,
@@ -93,36 +108,44 @@ def player_api():
             "exp_date": "2147483647",
             "is_trial": "0",
             "active_cons": "1",
-            "max_connections": "10"
+            "max_connections": "10",
+            "allowed_output_formats": ["m3u8", "ts", "rtmp"]
         },
         "server_info": {
-            "url": SERVER_CONFIG['server_url'],
+            "url": "mediastar-m3u.onrender.com",
             "port": "443",
             "https_port": "443",
             "server_protocol": "https",
-            "time_now": "2026-06-06 00:00:00",
-            "timestamp_now": 1780000000
+            "rtmp_port": "8080",
+            "timezone": "UTC",
+            "timestamp_now": 1780000000,
+            "time_now": "2026-06-06 00:00:00"
         }
-    }
-    return jsonify(user_data)
+    })
 
-# نقطة توليد ملف M3U عبر بيانات أكستريم (get.php)
-@app.route('/get.php')
-def get_playlist():
-    username = request.args.get('username')
-    password = request.args.get('password')
-    
+# نقطة تشغيل البث المباشر (live)
+@app.route('/live/<username>/<password>/<int:stream_id>.ts')
+@app.route('/live/<username>/<password>/<int:stream_id>')
+def stream_live(username, password, stream_id):
     if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
         return "Unauthorized", 401
+    return Response("Redirect", status=302, headers={"Location": "https://www.w3schools.com/html/mov_bbb.mp4"})
 
-    m3u_content = "#EXTM3U\n"
-    all_media = CHANNELS_DATABASE + MOVIES_DATABASE + SERIES_DATABASE
-    
-    for item in all_media:
-        m3u_content += f"#EXTINF:-1 tvg-name=\"{item['name']}\" group-title=\"{item['category_name']}\",{item['name']}\n"
-        m3u_content += f"{item['url']}\n"
-        
-    return Response(m3u_content, mimetype='audio/x-mpegurl')
+# نقطة تشغيل الأفلام (movie)
+@app.route('/movie/<username>/<password>/<int:stream_id>.<ext>')
+@app.route('/movie/<username>/<password>/<int:stream_id>')
+def stream_movie(username, password, stream_id, ext="mp4"):
+    if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
+        return "Unauthorized", 401
+    return Response("Redirect", status=302, headers={"Location": "https://www.w3schools.com/html/mov_bbb.mp4"})
+
+# نقطة تشغيل حلقات المسلسلات (series)
+@app.route('/series/<username>/<password>/<int:episode_id>.<ext>')
+@app.route('/series/<username>/<password>/<int:episode_id>')
+def stream_series(username, password, episode_id, ext="mp4"):
+    if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
+        return "Unauthorized", 401
+    return Response("Redirect", status=302, headers={"Location": "https://www.w3schools.com/html/html5.mp4"})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
