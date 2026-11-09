@@ -2,14 +2,14 @@ from flask import Flask, jsonify, Response, request
 
 app = Flask(__name__)
 
-# بيانات الدخول الجديدة
+# بيانات الدخول
 SERVER_CONFIG = {
     "username": "Mahmood",
     "password": "Mahmood102001",
     "server_url": "https://mediastar-m3u.onrender.com"
 }
 
-# قاعدة البيانات مصنفة حسب الأقسام
+# 1. القنوات المباشرة (تظهر في قائمة Live)
 CHANNELS_DATABASE = [
     {
         "stream_id": 1,
@@ -22,6 +22,7 @@ CHANNELS_DATABASE = [
     }
 ]
 
+# 2. الأفلام (تظهر في قائمة VOD)
 MOVIES_DATABASE = [
     {
         "stream_id": 2,
@@ -34,13 +35,20 @@ MOVIES_DATABASE = [
     }
 ]
 
+# 3. المسلسلات (تظهر في قائمة Series)
 SERIES_DATABASE = [
     {
         "series_id": 3,
         "name": "مسلسل تجريبي",
         "cover": "",
         "category_id": "3",
-        "category_name": "Series"
+        "category_name": "Series",
+        "genre": "Drama",
+        "plot": "مسلسل تجريبي للتأكد من ظهور الحلقات",
+        "cast": "Test Cast",
+        "director": "Test Director",
+        "releaseDate": "2026-01-01",
+        "rating": "5.0"
     }
 ]
 
@@ -60,21 +68,21 @@ SERIES_EPISODES = {
 def home():
     return "Xtream Codes API Server is Active!"
 
-# نقطة المصادقة الرئيسية (player_api.php)
+# نقطة الاتصال والأقسام الرئيسية (player_api.php)
 @app.route('/player_api.php')
 def player_api():
     username = request.args.get('username')
     password = request.args.get('password')
     action = request.args.get('action')
 
-    # التحقق من صحة بيانات الدخول الجديدة
+    # التحقق من صحة بيانات الدخول
     if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
         return jsonify({
             "user_info": {"auth": 0, "status": "Expired"},
             "server_info": {"status": "Invalid"}
         }), 200
 
-    # 1. إرسال الأقسام حسب الطلب
+    # طلب الأقسام حسب القائمة في الواجهة
     if action == "get_live_categories":
         return jsonify([{"category_id": "1", "category_name": "Live Channels", "parent_id": 0}])
     elif action == "get_vod_categories":
@@ -82,7 +90,7 @@ def player_api():
     elif action == "get_series_categories":
         return jsonify([{"category_id": "3", "category_name": "Series", "parent_id": 0}])
 
-    # 2. إرسال محتوى القنوات والأفلام والمسلسلات
+    # جلب المحتوى لكل قائمة
     elif action == "get_live_streams":
         return jsonify(CHANNELS_DATABASE)
     elif action == "get_vod_streams":
@@ -90,14 +98,19 @@ def player_api():
     elif action == "get_series":
         return jsonify(SERIES_DATABASE)
     elif action == "get_series_info":
+        series_id = request.args.get('series_id')
         info = {
-            "seasons": [{"season_number": 1, "name": "الموسم الاول"}],
+            "seasons": [{"season_number": 1, "name": "الموسم الاول", "episode_count": 1}],
             "episodes": SERIES_EPISODES,
-            "info": {"name": "مسلسل تجريبي", "cover": ""}
+            "info": {
+                "name": "مسلسل تجريبي",
+                "cover": "",
+                "plot": "وصف المسلسل التجريبي"
+            }
         }
         return jsonify(info)
 
-    # الاستجابة الافتراضية عند تسجيل الدخول الناجح
+    # الاستجابة عند تسجيل الدخول الناجح للواجهة
     return jsonify({
         "user_info": {
             "username": username,
@@ -122,7 +135,7 @@ def player_api():
         }
     })
 
-# نقاط تشغيل البث
+# نقاط التشغيل المباشر
 @app.route('/live/<username>/<password>/<int:stream_id>.ts')
 @app.route('/live/<username>/<password>/<int:stream_id>')
 def stream_live(username, password, stream_id):
