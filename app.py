@@ -117,7 +117,7 @@ def player_api():
         }
         return jsonify(info)
 
-    # الاستجابة لعملية تسجيل الدخول الناجح من الرسيفر
+    # الاستجابة لعملية تسجيل الدخول الناجح من الرسيفر (مع ضبط البورت 8000)
     return jsonify({
         "user_info": {
             "username": username,
@@ -132,9 +132,9 @@ def player_api():
         },
         "server_info": {
             "url": SERVER_CONFIG['server_url'],
-            "port": "443",
-            "https_port": "443",
-            "server_protocol": "https",
+            "port": "8000",
+            "https_port": "8000",
+            "server_protocol": "http",
             "rtmp_port": "8080",
             "timezone": "UTC",
             "timestamp_now": 1780000000,
