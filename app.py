@@ -2,14 +2,12 @@ from flask import Flask, jsonify, Response, request
 
 app = Flask(__name__)
 
-# بيانات الدخول الخاصة بك
 SERVER_CONFIG = {
     "username": "Mahmood",
     "password": "Mahmood102001",
     "server_url": "mediastar-m3u.onrender.com"
 }
 
-# 1. القنوات المباشرة
 CHANNELS_DATABASE = [
     {
         "num": 1,
@@ -27,7 +25,6 @@ CHANNELS_DATABASE = [
     }
 ]
 
-# 2. الأفلام
 MOVIES_DATABASE = [
     {
         "num": 1,
@@ -43,7 +40,6 @@ MOVIES_DATABASE = [
     }
 ]
 
-# 3. المسلسلات
 SERIES_DATABASE = [
     {
         "num": 1,
@@ -74,23 +70,25 @@ SERIES_EPISODES = {
 
 @app.route('/')
 def home():
-    return "MediaStar Xtream Codes Compatible Server is Active!"
+    return "Xtream Codes Ultimate Server is Active!"
 
-# نقطة الاتصال والمصادقة الأساسية لرسيفرات أكستريم
+# دعم الـ panel_api.php التي تطلبها بعض الرسيفرات
+@app.route('/panel_api.php')
 @app.route('/player_api.php')
 def player_api():
     username = request.args.get('username')
     password = request.args.get('password')
     action = request.args.get('action')
 
-    # التحقق من بيانات الدخول
+    # طباعة الطلب في السجل لمعرفة ماذا يطلب الرسيفر بالحديد
+    print(f"Request Action: {action} | User: {username}")
+
     if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
         return jsonify({
             "user_info": {"auth": 0, "status": "Expired"},
             "server_info": {"status": "Invalid"}
         }), 200
 
-    # الأقسام المعتمدة للقوائم الثلاثة (Live, VOD, Series)
     if action == "get_live_categories":
         return jsonify([{"category_id": "1", "category_name": "Live Channels", "parent_id": 0}])
     elif action == "get_vod_categories":
@@ -98,7 +96,6 @@ def player_api():
     elif action == "get_series_categories":
         return jsonify([{"category_id": "3", "category_name": "Series", "parent_id": 0}])
 
-    # جلب قوائم المحتوى
     elif action == "get_live_streams":
         return jsonify(CHANNELS_DATABASE)
     elif action == "get_vod_streams":
@@ -117,7 +114,7 @@ def player_api():
         }
         return jsonify(info)
 
-    # الاستجابة لعملية تسجيل الدخول الناجح من الرسيفر (مع ضبط البورت 8000)
+    # الرد الشامل المتوافق مع كافة إصدارات Xtream UI
     return jsonify({
         "user_info": {
             "username": username,
@@ -133,16 +130,16 @@ def player_api():
         "server_info": {
             "url": SERVER_CONFIG['server_url'],
             "port": "8000",
-            "https_port": "8000",
+            "https_port": "443",
             "server_protocol": "http",
             "rtmp_port": "8080",
             "timezone": "UTC",
             "timestamp_now": 1780000000,
-            "time_now": "2026-06-06 00:00:00"
+            "time_now": "2026-06-06 00:00:00",
+            "process": True
         }
     })
 
-# نقاط تشغيل البث المباشر
 @app.route('/live/<username>/<password>/<int:stream_id>.ts')
 @app.route('/live/<username>/<password>/<int:stream_id>')
 def stream_live(username, password, stream_id):
@@ -150,7 +147,6 @@ def stream_live(username, password, stream_id):
         return "Unauthorized", 401
     return Response("Redirect", status=302, headers={"Location": "https://www.w3schools.com/html/mov_bbb.mp4"})
 
-# نقاط تشغيل الأفلام
 @app.route('/movie/<username>/<password>/<int:stream_id>.<ext>')
 @app.route('/movie/<username>/<password>/<int:stream_id>')
 def stream_movie(username, password, stream_id, ext="mp4"):
@@ -158,7 +154,6 @@ def stream_movie(username, password, stream_id, ext="mp4"):
         return "Unauthorized", 401
     return Response("Redirect", status=302, headers={"Location": "https://www.w3schools.com/html/mov_bbb.mp4"})
 
-# نقاط تشغيل المسلسلات
 @app.route('/series/<username>/<password>/<int:episode_id>.<ext>')
 @app.route('/series/<username>/<password>/<int:episode_id>')
 def stream_series(username, password, episode_id, ext="mp4"):
