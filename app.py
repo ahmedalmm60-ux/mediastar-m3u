@@ -4,8 +4,7 @@ app = Flask(__name__)
 
 SERVER_CONFIG = {
     "username": "Mahmood",
-    "password": "Mahmood102001",
-    "server_url": "mediastar-m3u.onrender.com"
+    "password": "Mahmood102001"
 }
 
 CHANNELS_DATABASE = [
@@ -70,20 +69,24 @@ SERIES_EPISODES = {
 
 @app.route('/')
 def home():
-    return "Xtream Codes API is Active!"
+    return "Xtream Panel is Online!"
 
+# معالجة كافة مسارات الـ API التي تطلبها رسيفرات ميديا ستار
+@app.route('/panel_api.php')
 @app.route('/player_api.php')
 def player_api():
     username = request.args.get('username')
     password = request.args.get('password')
     action = request.args.get('action')
 
+    # التحقق من بيانات الدخول
     if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
         return jsonify({
             "user_info": {"auth": 0, "status": "Expired"},
             "server_info": {"status": "Invalid"}
         }), 200
 
+    # طلب الأقسام
     if action == "get_live_categories":
         return jsonify([{"category_id": "1", "category_name": "Live Channels", "parent_id": 0}])
     elif action == "get_vod_categories":
@@ -91,6 +94,7 @@ def player_api():
     elif action == "get_series_categories":
         return jsonify([{"category_id": "3", "category_name": "Series", "parent_id": 0}])
 
+    # جلب المحتوى
     elif action == "get_live_streams":
         return jsonify(CHANNELS_DATABASE)
     elif action == "get_vod_streams":
@@ -105,28 +109,30 @@ def player_api():
         }
         return jsonify(info)
 
-    # الاستجابة القياسية المطابقة تماماً لمتطلبات الرسيفر لمنع خطأ Download date error
+    # الاستجابة الكاملة بنجاح لتخطي خطأ تاريخ الصلاحية في الرسيفر
+    host_url = request.host
     return jsonify({
         "user_info": {
             "username": username,
             "password": password,
             "auth": 1,
             "status": "Active",
-            "exp_date": 2147483647,
+            "exp_date": "2147483647",
             "is_trial": "0",
-            "active_cons": 1,
+            "active_cons": "1",
             "max_connections": "10",
             "allowed_output_formats": ["m3u8", "ts", "rtmp"]
         },
         "server_info": {
-            "url": SERVER_CONFIG['server_url'],
+            "url": host_url,
             "port": "8000",
             "https_port": "443",
             "server_protocol": "http",
             "rtmp_port": "8080",
             "timezone": "UTC",
             "timestamp_now": 1780000000,
-            "time_now": "2026-06-06 00:00:00"
+            "time_now": "2026-06-06 00:00:00",
+            "process": True
         }
     })
 
