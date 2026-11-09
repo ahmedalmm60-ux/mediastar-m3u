@@ -2,10 +2,10 @@ from flask import Flask, jsonify, Response, request
 
 app = Flask(__name__)
 
-# بيانات الدخول الثابتة
+# بيانات الدخول الجديدة
 SERVER_CONFIG = {
-    "username": "admin",
-    "password": "123",
+    "username": "Mahmood",
+    "password": "Mahmood102001",
     "server_url": "https://mediastar-m3u.onrender.com"
 }
 
@@ -67,7 +67,7 @@ def player_api():
     password = request.args.get('password')
     action = request.args.get('action')
 
-    # التحقق من صحة بيانات الدخول
+    # التحقق من صحة بيانات الدخول الجديدة
     if username != SERVER_CONFIG['username'] or password != SERVER_CONFIG['password']:
         return jsonify({
             "user_info": {"auth": 0, "status": "Expired"},
@@ -90,7 +90,6 @@ def player_api():
     elif action == "get_series":
         return jsonify(SERIES_DATABASE)
     elif action == "get_series_info":
-        series_id = request.args.get('series_id')
         info = {
             "seasons": [{"season_number": 1, "name": "الموسم الاول"}],
             "episodes": SERIES_EPISODES,
@@ -98,7 +97,7 @@ def player_api():
         }
         return jsonify(info)
 
-    # الاستجابة الافتراضية للتحقق وتسجيل الدخول الناجح
+    # الاستجابة الافتراضية عند تسجيل الدخول الناجح
     return jsonify({
         "user_info": {
             "username": username,
@@ -123,7 +122,7 @@ def player_api():
         }
     })
 
-# نقطة تشغيل البث المباشر (live)
+# نقاط تشغيل البث
 @app.route('/live/<username>/<password>/<int:stream_id>.ts')
 @app.route('/live/<username>/<password>/<int:stream_id>')
 def stream_live(username, password, stream_id):
@@ -131,7 +130,6 @@ def stream_live(username, password, stream_id):
         return "Unauthorized", 401
     return Response("Redirect", status=302, headers={"Location": "https://www.w3schools.com/html/mov_bbb.mp4"})
 
-# نقطة تشغيل الأفلام (movie)
 @app.route('/movie/<username>/<password>/<int:stream_id>.<ext>')
 @app.route('/movie/<username>/<password>/<int:stream_id>')
 def stream_movie(username, password, stream_id, ext="mp4"):
@@ -139,7 +137,6 @@ def stream_movie(username, password, stream_id, ext="mp4"):
         return "Unauthorized", 401
     return Response("Redirect", status=302, headers={"Location": "https://www.w3schools.com/html/mov_bbb.mp4"})
 
-# نقطة تشغيل حلقات المسلسلات (series)
 @app.route('/series/<username>/<password>/<int:episode_id>.<ext>')
 @app.route('/series/<username>/<password>/<int:episode_id>')
 def stream_series(username, password, episode_id, ext="mp4"):
