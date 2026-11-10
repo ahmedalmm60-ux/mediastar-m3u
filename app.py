@@ -69,7 +69,7 @@ SERIES_EPISODES = {
 
 @app.route('/')
 def home():
-    return "Xtream Panel is Online!"
+    return "Xtream Panel is Online on Port 8080!"
 
 @app.route('/panel_api.php')
 @app.route('/player_api.php')
@@ -121,7 +121,7 @@ def player_api():
         "server_info": {
             "url": host_url,
             "port": "8080",
-            "https_port": "443",
+            "https_port": "8080",
             "server_protocol": "http",
             "rtmp_port": "8080",
             "timezone": "UTC",
