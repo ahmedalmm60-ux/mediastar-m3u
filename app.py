@@ -69,7 +69,7 @@ SERIES_EPISODES = {
 
 @app.route('/')
 def home():
-    return "Xtream Panel is Online on Port 8080!"
+    return "Xtream Panel is Online with Custom Domain!"
 
 @app.route('/panel_api.php')
 @app.route('/player_api.php')
@@ -105,7 +105,6 @@ def player_api():
         }
         return jsonify(info)
 
-    host_url = request.host
     return jsonify({
         "user_info": {
             "username": username,
@@ -119,7 +118,7 @@ def player_api():
             "allowed_output_formats": ["m3u8", "ts", "rtmp"]
         },
         "server_info": {
-            "url": host_url,
+            "url": "mahmood1020.duckdns.org",
             "port": "8080",
             "https_port": "8080",
             "server_protocol": "http",
